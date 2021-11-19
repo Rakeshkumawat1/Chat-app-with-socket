@@ -34,7 +34,7 @@ http.listen(PORT, () => {
 
 const io = require('socket.io')(http);
 io.on('connection', (socket) => {
-    // console.log("Connected!", socket.id)
+    console.log("Connected!", socket.id)
 
     socket.on('join', ({ name, room }, callback) => {
         const { error, user } = addUser({ id: socket.id, name, room });
