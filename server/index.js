@@ -2,8 +2,13 @@ const express = require('express');
 const app = express();
 var path = require('path');
 const cors = require('cors');
+const env = require('dotenv').config();
+const mongoose = require('mongoose');
+var bodyParser = require('body-parser');
 
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
+
+var adminAuthRoute = require('./routes/admin/auth');
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -12,25 +17,35 @@ const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 // app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors());
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/api/admin', adminAuthRoute);
 
 const http = require('http').createServer(app);
 
 const PORT = process.env.PORT || 5000;
 
-
-
+mongoose.connect(
+    `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.0rsnr.mongodb.net/${process.env.MONGO_DB_DATABASE}?retryWrites=true&w=majority`,
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        // useCreateIndex: true
+    }
+).then((dbo) => {
+    // var dbo = db.db("mydb");
+    // dbo.collection("user").findOne({}, function(err, result) {
+    //     if (err) throw err;
+    //     console.log(result.name);
+    //     // db.close();
+    //   });
+    console.log("database connected");
+})
 
 http.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
-
-
-
-// app.get('/', (req, res) => {
-//     // console.log("done")
-//     res.send("done")
-//     // res.sendFile(__dirname, './index.html');
-// })
 
 const io = require('socket.io')(http);
 io.on('connection', (socket) => {
