@@ -9,7 +9,6 @@ export const login = (user) => {
 
             const res = await axios.post(`/admin/auth/signin`, {
                 ...user
-
             });
             if (res.status === 200) {
                 const { token, user } = res.data;
@@ -23,7 +22,6 @@ export const login = (user) => {
                 });
             }
         } catch (error) {
-            console.log(error);
             dispatch({
                 type: authConstants.LOGIN_FAILURE,
                 payload: { error: error.response }
