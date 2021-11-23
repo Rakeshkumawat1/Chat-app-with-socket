@@ -39,7 +39,7 @@ exports.signup = () => {
         User.findOne({ email: req.body.email })
             .exec(async (error, user) => {
                 if (user) return res.status(400).json({
-                    message: 'Admin already registered'
+                    error: 'Admin already registered'
                 });
 
                 const {

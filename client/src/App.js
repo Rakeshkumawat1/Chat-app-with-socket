@@ -2,7 +2,7 @@ import { React, Switch } from 'react'
 import './App.css';
 import { Route } from 'react-router-dom';
 import Signin from './components/Signin/signin';
-// import Signup from './components/Signup/signup';
+import Signup from './components/Signup/signup';
 import Join from './components/Join/Join';
 import Chat from './components/Chat/Chat';
 import PrivateRoute from './components/HOC/privateRoute';
@@ -30,7 +30,7 @@ function App() {
             <PrivateRoute path="/chat" component={Chat} />
 
             <Route path="/signin" component={Signin} />
-            {/* <Route path="/signup" component={Signup} /> */}
+            <Route path="/signup" component={Signup} />
             {/* <Switch>
                 <PrivateRoute path="/" exact component={Join} />
                 <PrivateRoute path="/chat" component={Chat} /> 
