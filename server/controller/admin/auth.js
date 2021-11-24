@@ -25,7 +25,7 @@ exports.signin = () => {
                         });
                     }
                 } else {
-                    return res.status(400).json({ error: 'Internel server error!' });
+                    return res.status(400).json({ error: 'User not found!' });
                 }
             })
 
@@ -36,7 +36,8 @@ exports.signin = () => {
 
 exports.signup = () => {
     return function (req, res) {
-        User.findOne({ email: req.body.email })
+        let checkMobile = req.body.mobile
+        User.findOne({ $or: [{ email: req.body.email }, { mobile: checkMobile }] })
             .exec(async (error, user) => {
                 if (user) return res.status(400).json({
                     error: 'Admin already registered'
@@ -46,7 +47,8 @@ exports.signup = () => {
                     firstName,
                     lastName,
                     email,
-                    password
+                    password,
+                    mobile
                 } = req.body;
 
                 const hash_password = await bcrypt.hash(password, 10)
@@ -55,7 +57,8 @@ exports.signup = () => {
                     lastName,
                     email,
                     hash_password,
-                    username: Math.random().toString(),
+                    uid: mobile.toString() + Math.floor(new Date().getTime() / 1000).toString(),
+                    mobile,
                     role: 'admin'
                 });
 

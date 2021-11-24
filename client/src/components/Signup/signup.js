@@ -21,6 +21,7 @@ const Signup = () => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [mobile, setMobile] = useState('');
     // const [error, setError] = useState('');
     const dispatch = useDispatch();
     const history = useHistory()
@@ -30,11 +31,12 @@ const Signup = () => {
         e.preventDefault();
 
         const user = {
-            firstName, lastName, email, password
+            firstName, lastName, email, password, mobile
         }
-        if (!firstName || !lastName || !email || !password) {
+        if (!firstName || !lastName || !email || !password || !mobile) {
             toast.error(!firstName ? `First Name required!!` :
-                (!lastName ? 'Last Name required' : (!email ? 'Email required' : `Password required!!`)), {
+                (!lastName ? 'Last Name required' : (!email ? 'Email required' : 
+                (!password ? `Password required!!` : 'Mobile number required') )), {
                 position: toast.POSITION.TOP_LEFT
             });
         } else {
@@ -105,6 +107,13 @@ const Signup = () => {
                         value={password}
                         type="password"
                         onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Input
+                        label="Mobile "
+                        placeholder="Enter mobile number in 10 digit"
+                        value={mobile}
+                        type="number"
+                        onChange={(e) => setMobile(e.target.value)}
                     />
 
                     <div className="d-grid gap-2 mt-2">

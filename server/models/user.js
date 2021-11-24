@@ -16,13 +16,12 @@ const userSchema = new mongoose.Schema({
         min:3,
         max:20,
     },
-    username:{
+    uid:{
         type: String,
         required: true,
         trim: true,
         unique:true,
-        index: true,
-        lowercase: true,
+        // index: true,
     },
     email:{
         type: String,
@@ -40,7 +39,13 @@ const userSchema = new mongoose.Schema({
         enum: ['user','admin'],
         default: 'user',
     },
-    contactNumber: { type: String},
+    mobile: { 
+        type: Number,
+        required: true,
+        trim: true,
+        // unique:true,
+        // index: true,
+    },
     profilePicture: {type: String }
 }, 
 {timestamps: true },

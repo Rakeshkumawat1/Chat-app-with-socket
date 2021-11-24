@@ -4,11 +4,14 @@ var path = require('path');
 const cors = require('cors');
 const env = require('dotenv').config();
 const mongoose = require('mongoose');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 
+const PORT = process.env.PORT || 5000;
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 
 var adminAuthRoute = require('./routes/admin/auth');
+var testRoute = require('./routes/test');
+
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
@@ -22,9 +25,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/admin', adminAuthRoute);
 
-const http = require('http').createServer(app);
+// const http = require('http').createServer(app);
 
-const PORT = process.env.PORT || 5000;
 
 mongoose.connect(
     `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@cluster0.0rsnr.mongodb.net/${process.env.MONGO_DB_DATABASE}?retryWrites=true&w=majority`,
@@ -43,11 +45,12 @@ mongoose.connect(
     console.log("database connected");
 })
 
-http.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 })
 
-const io = require('socket.io')(http);
+const io = require('socket.io')(server);
+
 io.on('connection', (socket) => {
     console.log("Connected!", socket.id)
 
@@ -83,8 +86,16 @@ io.on('connection', (socket) => {
             io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
         }
     })
-    // socket.on('message', (msg) =>{
-    //     // console.log(msg)
-    //     socket.broadcast.emit('message', msg)
-    // })
 })
+
+app.use(function(req, res, next) {
+    req.io = io;
+    next();
+});
+
+app.use('/api/test',testRoute);
+
+// http.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`)
+// })
+

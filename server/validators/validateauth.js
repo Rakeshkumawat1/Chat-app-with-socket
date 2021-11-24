@@ -14,7 +14,11 @@ exports.validateSignupRequest = [
 
     check('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 character long')
+    .withMessage('Password must be at least 6 character long'),
+
+    check('mobile')
+    .isLength({ min: 10, max:10 })
+    .withMessage('Enter correct mobile number')
 ];
 
 exports.validateSigninRequest = [
