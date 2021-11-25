@@ -11,12 +11,12 @@ exports.signin = () => {
                     const pwdMatch = await bcrypt.compare(req.body.password, user.hash_password)
                     if (pwdMatch == true && user.role === 'admin') {
                         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-                        const { _id, firstName, lastName, email, role, fullName } = user;
+                        const { _id, firstName, lastName, email, role, fullName, uid, mobile } = user;
                         res.cookie('token', token, { expiresIn: '7d' });
                         res.status(200).json({
                             token,
                             user: {
-                                _id, firstName, lastName, email, role, fullName
+                                _id, firstName, lastName, email, role, fullName, uid, mobile
                             }
                         });
                     } else {

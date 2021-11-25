@@ -11,6 +11,8 @@ const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 
 var adminAuthRoute = require('./routes/admin/auth');
 var testRoute = require('./routes/test');
+var addNewUserRoute = require('./routes/newUsers');
+
 
 
 // view engine setup
@@ -94,6 +96,7 @@ app.use(function(req, res, next) {
 });
 
 app.use('/api/test',testRoute);
+app.use('/api/', addNewUserRoute);
 
 // http.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`)

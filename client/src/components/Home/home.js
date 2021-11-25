@@ -16,8 +16,10 @@ export default function Home() {
     toast.configure();
     let socket;
     const history = useHistory();
+    const home = useSelector(state => state.home)
     const dispatch = useDispatch()
     const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
 
     const [mobile, setMobile] = useState('')
     const [show, setShow] = useState(false);
@@ -26,22 +28,28 @@ export default function Home() {
     const handleShow = () => setShow(true);
     const handleSubmit = () => {
         if (!mobile || mobile.length < 10) {
-            toast.error( !mobile ? "Enter mobile number" : "Enter currect mobile number", {
+            toast.error(!mobile ? "Enter mobile number!" : "Enter currect mobile number!", {
                 position: toast.POSITION.TOP_LEFT
             });
         } else {
             // const form = new FormData();
             // form.append('mobile', mobile);
-            const form = { mobile }
-            dispatch(homeData(form));
-            setShow(false);
+            if (mobile == user.mobile) {
+                toast.error("You can't add your mobile number to your list!", {
+                    position: toast.POSITION.TOP_LEFT
+                });
+            } else {
+                const form = { mobile }
+                dispatch(homeData(form, user));
+                setShow(false);
+            }
+
         }
 
     }
 
     useEffect(() => {
         if (token) {
-            const user = JSON.parse(localStorage.getItem('user'));
             socket = io(socketEndpoint, { transports: ['websocket'] });
             // dispatch(homeData(user))
 
@@ -61,6 +69,7 @@ export default function Home() {
         }
     }, [token, dispatch])
 
+    // console.log(home)
 
     return (
         <div>
