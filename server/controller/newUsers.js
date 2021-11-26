@@ -2,7 +2,7 @@ const UserHome = require('../models/newUser');
 const User = require('../models/user');
 
 exports.newUsers = async (req, res) => {
-    if (!req.body.mobile) return res.status(400).json({ error: 'Mobile number require' });
+    if (!req.body.mobile) return res.status(400).json({ error: 'Mobile number require!' });
     
     try {
         // Checking user exitst or not

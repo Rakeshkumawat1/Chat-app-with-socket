@@ -51,6 +51,11 @@ export default function Home() {
     useEffect(() => {
         if (token) {
             socket = io(socketEndpoint, { transports: ['websocket'] });
+            if (home.message) {
+                toast.success(home.message, {
+                    position: toast.POSITION.TOP_LEFT
+                });
+            }
             // dispatch(homeData(user))
 
             // socket.emit('join', { name:"test", room: "test" }, () => {
@@ -67,7 +72,7 @@ export default function Home() {
                 pathname: '/singin',
             })
         }
-    }, [token, dispatch])
+    }, [token, dispatch, home])
 
     // console.log(home)
 

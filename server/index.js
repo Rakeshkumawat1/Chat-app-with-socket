@@ -12,6 +12,7 @@ const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
 var adminAuthRoute = require('./routes/admin/auth');
 var testRoute = require('./routes/test');
 var addNewUserRoute = require('./routes/newUsers');
+var allUserListRoute = require('./routes/home');
 
 
 
@@ -97,6 +98,7 @@ app.use(function(req, res, next) {
 
 app.use('/api/test',testRoute);
 app.use('/api/', addNewUserRoute);
+app.use('/api/', allUserListRoute);
 
 // http.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`)
