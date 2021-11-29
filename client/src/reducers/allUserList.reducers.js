@@ -1,28 +1,28 @@
-import { chatConstants } from "../actions/constants";
+import { allUserListConstants } from "../actions/constants";
 
 const initState = {
     error: null,
-    message: '',
-    loading: false
+    loading: false,
+    allUserList: []
 }
 
 export default (state = initState, action) => {
     console.log(action)
     switch (action.type) {
-        case chatConstants.CHAT_DATA_REQUEST:
+        case allUserListConstants.ALL_USER_LIST_REQUEST:
             state = {
                 ...state,
                 loading: true
             }
             break;
-        case chatConstants.CHAT_DATA_SUCCESS:
+        case allUserListConstants.ALL_USER_LIST_SUCCESS:
             state = {
                 ...state,
                 loading: false,
-                message: action.payload.message
+                allUserList: action.payload.message
             }
             break;
-        case chatConstants.CHAT_DATA_FAILURE:
+        case allUserListConstants.ALL_USER_LIST_FAILURE:
             state = {
                 ...state,
                 loading: false,

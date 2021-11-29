@@ -3,7 +3,7 @@ const User = require('../models/user');
 
 exports.newUsers = async (req, res) => {
     if (!req.body.mobile) return res.status(400).json({ error: 'Mobile number require!' });
-    
+    // console.log(req.body)
     try {
         // Checking user exitst or not
         // const [data1, data2] = await Promise.all([mongoQuery1, mongoQuery2]);

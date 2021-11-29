@@ -3,8 +3,8 @@ import './home.css';
 import { io } from 'socket.io-client';
 import { useHistory } from 'react-router-dom';
 import { socketEndpoint } from '../../urlConfig';
-import { axios } from '../../helpers/axios'
-import { homeData } from '../../actions';
+// import { axios } from '../../helpers/axios'
+import { homeData, signOut, alluserlist } from '../../actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { Modal, Button } from 'react-bootstrap';
 import Input from '../../components/UI/Inputs/signupinput';
@@ -17,6 +17,8 @@ export default function Home() {
     let socket;
     const history = useHistory();
     const home = useSelector(state => state.home)
+    const auth = useSelector(state => state.auth)
+    const userList = useSelector(state => state.userList)
     const dispatch = useDispatch()
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
@@ -48,15 +50,46 @@ export default function Home() {
 
     }
 
+    const logOut = () => {
+        console.log("logOut");
+        dispatch(signOut())
+    }
+
+    useEffect(() => {
+        dispatch(alluserlist(user))
+    }, [])
+
+    // useEffect(() => {
+    //     if(userList.allUserList.length){
+    //         toast.success("done", {
+    //             position: toast.POSITION.TOP_LEFT
+    //         });
+    //         console.log(userList.allUserList);
+    //     }
+    // }, [userList])
+
+
     useEffect(() => {
         if (token) {
-            socket = io(socketEndpoint, { transports: ['websocket'] });
+            // socket = io(socketEndpoint, { transports: ['websocket'] });
             if (home.message) {
                 toast.success(home.message, {
                     position: toast.POSITION.TOP_LEFT
                 });
+                home.message = '';
             }
-            // dispatch(homeData(user))
+            if (home.error != null) {
+                toast.error(home.error.data.error, {
+                    position: toast.POSITION.TOP_LEFT
+                });
+                home.error = null;
+            }
+            if (userList.allUserList.length) {
+                toast.success("done", {
+                    position: toast.POSITION.TOP_LEFT
+                });
+                console.log(userList.allUserList);
+            }
 
             // socket.emit('join', { name:"test", room: "test" }, () => {
             //     // if(error) return console.log("error from socket");
@@ -69,11 +102,10 @@ export default function Home() {
 
         } else {
             history.push({
-                pathname: '/singin',
+                pathname: '/signin',
             })
         }
-    }, [token, dispatch, home])
-
+    }, [token, home, user, auth, userList])
     // console.log(home)
 
     return (
@@ -150,6 +182,7 @@ export default function Home() {
                                         </div>
                                         <div className="col-lg-6 hidden-sm text-right">
                                             <button className="rounded-pill" onClick={handleShow}>Add User</button>
+                                            <button className="rounded-pill mx-1" onClick={logOut}>Log Out</button>
                                             {/* <a href="javascript:void(0);" className="btn btn-outline-secondary"><i className="fa fa-camera"></i></a>
                                             <a href="javascript:void(0);" className="btn btn-outline-primary"><i className="fa fa-image"></i></a>
                                             <a href="javascript:void(0);" className="btn btn-outline-info"><i className="fa fa-cogs"></i></a>
