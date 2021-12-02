@@ -59,16 +59,6 @@ export default function Home() {
         dispatch(alluserlist(user))
     }, [])
 
-    // useEffect(() => {
-    //     if(userList.allUserList.length){
-    //         toast.success("done", {
-    //             position: toast.POSITION.TOP_LEFT
-    //         });
-    //         console.log(userList.allUserList);
-    //     }
-    // }, [userList])
-
-
     useEffect(() => {
         if (token) {
             // socket = io(socketEndpoint, { transports: ['websocket'] });
@@ -85,9 +75,9 @@ export default function Home() {
                 home.error = null;
             }
             if (userList.allUserList.length) {
-                toast.success("done", {
-                    position: toast.POSITION.TOP_LEFT
-                });
+                // toast.success(userList.allUserList, {
+                //     position: toast.POSITION.TOP_LEFT
+                // });
                 console.log(userList.allUserList);
             }
 
@@ -123,8 +113,29 @@ export default function Home() {
                                     </div>
                                     <input type="text" className="form-control" placeholder="Search..." />
                                 </div>
-                                <ul className="list-unstyled chat-list mt-2 mb-0">
-                                    <li className="clearfix">
+
+                                {userList.allUserList.length ?
+                                    <ul className="list-unstyled chat-list mt-2 mb-0">
+                                        {userList.allUserList.map((hit) =>
+                                            <li className="clearfix">
+                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
+                                                <div className="about">
+                                                    <div className="name">{hit.firstName}</div>
+                                                    <div className="status"> <i className="fa fa-circle offline"></i> left 7 mins ago </div>
+                                                </div>
+                                            </li>
+                                        )
+                                        }
+                                    </ul>
+
+                                    :
+                                    <ul className="list-unstyled chat-list mt-2 mb-0">
+                                        <li className="clearfix">
+                                            <p>User not found! To add user click on add user button...!</p>
+                                        </li>
+                                    </ul>
+                                }
+                                {/* <li className="clearfix">
                                         <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
                                         <div className="about">
                                             <div className="name">Vincent Porter</div>
@@ -165,8 +176,8 @@ export default function Home() {
                                             <div className="name">Dean Henry</div>
                                             <div className="status"> <i className="fa fa-circle offline"></i> offline since Oct 28 </div>
                                         </div>
-                                    </li>
-                                </ul>
+                                    </li> */}
+                                {/* </ul> */}
                             </div>
                             <div className="chat">
                                 <div className="chat-header clearfix">
