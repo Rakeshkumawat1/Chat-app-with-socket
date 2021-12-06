@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
         socket.broadcast.to(user.room).emit('message', { usre: 'admin', text: `${user.name}. has joined!` });
 
         socket.join(user.room);
-        // console.log(name, room)
+        console.log(name, room)
 
         io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
 
