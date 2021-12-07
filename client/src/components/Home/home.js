@@ -12,11 +12,11 @@ import ScrollToBottom from 'react-scroll-to-bottom';
 import Message from '../Message/message'
 
 let socket;
+// let detailsObj = { name: "Rakesh kumawat", status: "Active" };
 export default function Home() {
 
     toast.configure();
     // socket = io(socketEndpoint, { transports: ['websocket'] });
-    let isSentByCurrentUser = false;
 
     const history = useHistory();
     const home = useSelector(state => state.home)
@@ -33,6 +33,10 @@ export default function Home() {
     const [showPrivateChat, setPrivateChat] = useState(true);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [detailsObj, setDetailsObj] = useState({ name: "Rakesh kumawat", status: "Active" })
+
+    let userDetails = false;
+    let isSentByCurrentUser = false;
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -64,7 +68,9 @@ export default function Home() {
     }
 
     const publicGroup = () => {
-        socket.emit('join', { name: "test", room: "test" }, (err) => {
+        const { firstName } = user
+        const name = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+        socket.emit('join', { name: name, room: "test" }, (err) => {
             if (err) return console.log(err);
         });
         setPrivateChat(false)
@@ -116,13 +122,102 @@ export default function Home() {
             })
         }
     }, [token, home, user, auth, userList])
-    // console.log(home)
+
+    const homeHeader = (userDetails, detailsObj) => {
+        return (
+            <div className="chat-header clearfix">
+                <div className="row">
+                    <div className="col-lg-6">
+                        {userDetails ?
+                            <div>
+
+                                {/* <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info">
+                                    <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" />
+
+                                </a> */}
+                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
+                                <div className="chat-about">
+                                    <h6 className="m-b-0">{detailsObj.name}</h6>
+                                    <small>{detailsObj.status}</small>
+                                </div>
+                            </div>
+                            : null}
+
+                    </div>
+                    <div className="col-lg-6 hidden-sm text-right">
+                        <button className="rounded-pill" onClick={handleShow}>Add User</button>
+                        <button className="rounded-pill mx-1" onClick={logOut}>Log Out</button>
+                        <button className="rounded-pill mx-1" onClick={publicGroup}>Public Group</button>
+                        <a href="javascript:void(0);" className="btn btn-outline-secondary"><i className="fa fa-camera"></i></a>
+                        <a href="javascript:void(0);" className="btn btn-outline-primary"><i className="fa fa-image"></i></a>
+                        <a href="javascript:void(0);" className="btn btn-outline-info"><i className="fa fa-cogs"></i></a>
+                        <a href="javascript:void(0);" className="btn btn-outline-warning"><i className="fa fa-question"></i></a>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    const renderPrivateChatUi = (detailsObj) => {
+        return (
+            <div className="chat">
+                {homeHeader(userDetails = true, detailsObj)}
+                <div className="chat-history">
+                    <ul className="m-b-0">
+                        <li className="clearfix">
+                            <div className="message-data text-right">
+                                <span className="message-data-time">10:10 AM, Today</span>
+                                {/* <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar" /> */}
+                            </div>
+                            <div className="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
+                        </li>
+                        <li className="clearfix">
+                            <div className="message-data">
+                                <span className="message-data-time">10:12 AM, Today</span>
+                            </div>
+                            <div className="message my-message">Are we meeting today?</div>
+                        </li>
+                        <li className="clearfix">
+                            <div className="message-data">
+                                <span className="message-data-time">10:15 AM, Today</span>
+                            </div>
+                            <div className="message my-message">Project has been already finished and I have results to show you.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div className="chat-message clearfix">
+                    <div className="input-group mb-0">
+                        <div className="input-group-prepend">
+                            <span className="input-group-text"><i className="fa fa-send"></i></span>
+                        </div>
+                        <input type="text" className="form-control" placeholder="Enter text here..." />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    const PrivateUser = (userData) => {
+        const { firstName } = userData;
+        const name = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+        setDetailsObj({ name: name, status: "Active" });
+        setPrivateChat(true)
+        setshowGroupChat(false);
+    }
+
+    const sendMessage = (e) => {
+        e.preventDefault();
+        isSentByCurrentUser = true
+        if (message) {
+            socket.emit('sendMessage', message, () => setMessage(''))
+        }
+    }
 
     return (
         <div>
             <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
 
-            <div className="container" style={{ width: "100%" }}>
+            <div className="container" style={{ width: "100%", height: "100%", marginTop: "80px", height: "25rem" }}>
                 <div className="row clearfix">
                     <div className="col-lg-12">
                         <div className="card chat-app">
@@ -136,11 +231,11 @@ export default function Home() {
 
                                 {userList.allUserList.length ?
                                     <ul className="list-unstyled chat-list mt-2 mb-0">
-                                        {userList.allUserList.map((hit) =>
-                                            <li className="clearfix">
+                                        {userList.allUserList.map((hit, i) =>
+                                            <li className="clearfix" key={i}>
                                                 <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
-                                                <div className="about">
-                                                    <div className="name">{hit.firstName}</div>
+                                                <div className="about" onClick={() => PrivateUser(hit)}>
+                                                    <div className="name">{hit.firstName.charAt(0).toUpperCase() + hit.firstName.slice(1)}</div>
                                                     <div className="status"> <i className="fa fa-circle offline"></i> left 7 mins ago </div>
                                                 </div>
                                             </li>
@@ -201,203 +296,127 @@ export default function Home() {
                             </div>
 
                             {userList.allUserList.length && showPrivateChat ?
-                                <div className="chat">
-                                    <div className="chat-header clearfix">
-                                        <div className="row">
-                                            <div className="col-lg-6">
-                                                {/* <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info"> */}
-                                                {/* <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" /> */}
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
-
-                                                {/* </a> */}
-                                                <div className="chat-about">
-                                                    <h6 className="m-b-0">Rakesh</h6>
-                                                    <small>Active</small>
-                                                </div>
-                                            </div>
-                                            <div className="col-lg-6 hidden-sm text-right">
-                                                <button className="rounded-pill" onClick={handleShow}>Add User</button>
-                                                <button className="rounded-pill mx-1" onClick={logOut}>Log Out</button>
-                                                <button className="rounded-pill mx-1" onClick={publicGroup}>Public Group</button>
-                                                <a href="javascript:void(0);" className="btn btn-outline-secondary"><i className="fa fa-camera"></i></a>
-                                                <a href="javascript:void(0);" className="btn btn-outline-primary"><i className="fa fa-image"></i></a>
-                                                <a href="javascript:void(0);" className="btn btn-outline-info"><i className="fa fa-cogs"></i></a>
-                                                <a href="javascript:void(0);" className="btn btn-outline-warning"><i className="fa fa-question"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="chat-history">
-                                        <ul className="m-b-0">
-                                            <li className="clearfix">
-                                                <div className="message-data text-right">
-                                                    <span className="message-data-time">10:10 AM, Today</span>
-                                                    {/* <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar" /> */}
-                                                </div>
-                                                <div className="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
-                                            </li>
-                                            <li className="clearfix">
-                                                <div className="message-data">
-                                                    <span className="message-data-time">10:12 AM, Today</span>
-                                                </div>
-                                                <div className="message my-message">Are we meeting today?</div>
-                                            </li>
-                                            <li className="clearfix">
-                                                <div className="message-data">
-                                                    <span className="message-data-time">10:15 AM, Today</span>
-                                                </div>
-                                                <div className="message my-message">Project has been already finished and I have results to show you.</div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="chat-message clearfix">
-                                        <div className="input-group mb-0">
-                                            <div className="input-group-prepend">
-                                                <span className="input-group-text"><i className="fa fa-send"></i></span>
-                                            </div>
-                                            <input type="text" className="form-control" placeholder="Enter text here..." />
-                                        </div>
-                                    </div>
-                                </div>
+                                renderPrivateChatUi(detailsObj)
                                 // Else part for new user
-                                // ( {showGroupChat ? 
-                                //      : null})
                                 : !showGroupChat ?
                                     <div className="chat">
-                                        <div className="chat-header clearfix">
-                                            <div className="row">
-                                                <div className="col-lg-6">
-                                                    {/* <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info" >
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" />
-                                                </a> */}
-                                                    {/* <div className="chat-about">
-                                                    <h6 className="m-b-0">Aiden Chavez</h6>
-                                                    <small>Last seen: 2 hours ago</small>
-                                                </div> */}
-                                                </div>
-                                                <div className="col-lg-6 hidden-sm text-right">
-                                                    <button className="rounded-pill" onClick={handleShow}>Add User</button>
-                                                    <button className="rounded-pill mx-1" onClick={logOut}>Log Out</button>
-                                                    <button className="rounded-pill mx-1" onClick={publicGroup}>Public Group</button>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-secondary"><i className="fa fa-camera"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-primary"><i className="fa fa-image"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-info"><i className="fa fa-cogs"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-warning"><i className="fa fa-question"></i></a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="chat-history" style={{ height: "26rem" }}>
+                                        {homeHeader(userDetails, {})}
+                                        <div className="chat-history">
                                             <div style={{ textAlign: "center", marginTop: "10vh" }}>
                                                 <p> Welcome to the chat application!</p>
                                                 <p> Enjoy the application...!</p>
                                             </div>
-                                            {/* <ul className="m-b-0">
-                                            <li className="clearfix">
-                                                <div className="message-data text-right">
-                                                    <span className="message-data-time">10:10 AM, Today</span>
-                                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar" />
-                                                </div>
-                                                <div className="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
-                                            </li>
-                                            <li className="clearfix">
-                                                <div className="message-data">
-                                                    <span className="message-data-time">10:12 AM, Today</span>
-                                                </div>
-                                                <div className="message my-message">Are we meeting today?</div>
-                                            </li>
-                                            <li className="clearfix">
-                                                <div className="message-data">
-                                                    <span className="message-data-time">10:15 AM, Today</span>
-                                                </div>
-                                                <div className="message my-message">Project has been already finished and I have results to show you.</div>
-                                            </li>
-                                        </ul> */}
                                         </div>
-                                        {/* <div className="chat-message clearfix">
-                                        <div className="input-group mb-0">
-                                            <div className="input-group-prepend">
-                                                <span className="input-group-text"><i className="fa fa-send"></i></span>
-                                            </div>
-                                            <input type="text" className="form-control" placeholder="Enter text here..." />
-                                        </div>
-                                    </div> */}
                                     </div>
                                     :
                                     <div className="chat">
-                                        <div className="chat-header clearfix">
-                                            <div className="row">
-                                                <div className="col-lg-6">
-                                                    {/* <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info"> */}
-                                                    {/* <img src="https://bootdey.com/img/Content/avatar/avatar2.png" alt="avatar" /> */}
-                                                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="avatar" />
+                                        {/* {homeHeader(userDetails = true, { name: "Public group chat", status: "Active" })}
+                                        <div className="outerContainer"> */}
 
-                                                    {/* </a> */}
-                                                    <div className="chat-about">
-                                                        <h6 className="m-b-0">Public Chat Group</h6>
-                                                        <small>Active</small>
+                                        {homeHeader(userDetails = true, { name: "Public group chat", status: "Active" })}
+                                        <div className="outerContainer">
+                                        {/* <div className="chat-history" > */}
+                                            {/* <div className="container"> */}
+                                            {/* <ul> */}
+                                            <ScrollToBottom className="messages">
+                                                {messages.map((singleMessage, i) => <div key={i}>
+                                                    {!isSentByCurrentUser
+                                                        ? (
+                                                            <li className="clearfix">
+                                                                <div className="message-data text-right">
+                                                                    <span className="message-data-time">10:10 AM, Today</span>
+                                                                </div>
+                                                                <div className="message other-message float-right">{singleMessage.text}</div>
+
+                                                            </li>
+                                                            // <div className="messageContainer justifyEnd">
+                                                            //     <div className="messageBox backgroundBlue">
+                                                            //         <p className="messageText colorWhite">{singleMessage.text}</p>
+                                                            //     </div>
+                                                            // </div>
+                                                        )
+                                                        : (
+                                                            <li className="clearfix">
+                                                                <div className="message-data">
+                                                                    <span className="message-data-time">10:12 AM, Today</span>
+                                                                </div>
+                                                                <div className="message my-message">{singleMessage.text}</div>
+
+                                                            </li>
+                                                            // <div className="messageContainer justifyStart">
+                                                            //     <div className="messageBox backgroundLight">
+                                                            //         <p className="messageText colorDark">{singleMessage.text}</p>
+                                                            //     </div>
+                                                            // </div>
+                                                        )}
+                                                </div>)}
+                                            </ScrollToBottom>
+                                            {/* </ul> */}
+
+                                            <div className="chat-message clearfix">
+                                                <div className="input-group mb-0">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Enter text here..."
+                                                        value={message}
+                                                        onChange={(e) => setMessage(e.target.value)}
+                                                        onKeyPress={e => e.key === 'Enter' ? sendMessage(e) : null}
+                                                    />
+                                                    <div className="input-group-prepend">
+                                                        <button className="input-group-text" style={{ height: "3rem" }} onClick={e => sendMessage(e)}><i className="fa fa-send"></i></button>
                                                     </div>
                                                 </div>
-                                                <div className="col-lg-6 hidden-sm text-right">
-                                                    <button className="rounded-pill" onClick={handleShow}>Add User</button>
-                                                    <button className="rounded-pill mx-1" onClick={logOut}>Log Out</button>
-                                                    <button className="rounded-pill mx-1" onClick={publicGroup}>Public Group</button>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-secondary"><i className="fa fa-camera"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-primary"><i className="fa fa-image"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-info"><i className="fa fa-cogs"></i></a>
-                                                    <a href="javascript:void(0);" className="btn btn-outline-warning"><i className="fa fa-question"></i></a>
-                                                </div>
+                                                {/* </div> */}
                                             </div>
                                         </div>
 
-                                        <div className="chat-history">
-                                            <ul className="m-b-0">
 
-                                                <ScrollToBottom className="messages">
-                                                    {/* {Object.entries(messages1).map((message, i) => <div key={i}><Message message={message} name={name} /></div>)} */}
-                                                    {messages.map((singleMessage, i) =>
-                                                        <div key={i}>
-                                                            {isSentByCurrentUser
-                                                                ? (
-                                                                    <li className="clearfix">
-                                                                        <div className="message-data text-right">
-                                                                            <span className="message-data-time">10:10 AM, Today</span>
-                                                                            {/* <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar" /> */}
-                                                                        </div>
-                                                                        <div className="message other-message float-right">{singleMessage.text}</div>
-                                                                    </li>
-                                                                )
-                                                                : (
-                                                                    <li className="clearfix">
-                                                                        <div className="message-data">
-                                                                            <span className="message-data-time">10:12 AM, Today</span>
-                                                                        </div>
-                                                                        <div className="message my-message">{singleMessage.text}</div>
-                                                                    </li>
-                                                                )}
-                                                            {/* <Message message={message} name="test" /> */}
-                                                        </div>)}
-                                                </ScrollToBottom>
-                                                {/* <li className="clearfix">
-                                                    <div className="message-data">
-                                                        <span className="message-data-time">10:12 AM, Today</span>
-                                                    </div>
-                                                    <div className="message my-message">Are we meeting today?</div>
-                                                </li> */}
-                                                {/* <li className="clearfix">
-                                                <div className="message-data">
-                                                    <span className="message-data-time">10:15 AM, Today</span>
-                                                </div>
-                                                <div className="message my-message">Project has been already finished and I have results to show you.</div>
-                                            </li> */}
-                                            </ul>
-                                        </div>
-                                        <div className="chat-message clearfix">
-                                            <div className="input-group mb-0">
-                                                <div className="input-group-prepend">
-                                                    <span className="input-group-text"><i className="fa fa-send"></i></span>
-                                                </div>
-                                                <input type="text" className="form-control" placeholder="Enter text here..." />
+                                        {/* <div className="chat-history" >
+                                                <ul className="m-b-0">
+
+                                                    <ScrollToBottom>
+                                                        {messages.map((singleMessage, i) =>
+                                                            <div key={i}>
+                                                                {isSentByCurrentUser
+                                                                    ? (
+                                                                        <li className="clearfix">
+                                                                            <div className="message-data text-right">
+                                                                                <span className="message-data-time">10:10 AM, Today</span>
+                                                                            </div>
+                                                                            <div className="message other-message float-right">{singleMessage.text}</div>
+
+                                                                        </li>
+                                                                    )
+                                                                    : (
+                                                                        <li className="clearfix">
+                                                                            <div className="message-data">
+                                                                                <span className="message-data-time">10:12 AM, Today</span>
+                                                                            </div>
+                                                                            <div className="message my-message">{singleMessage.text}</div>
+
+                                                                        </li>
+                                                                    )}
+                                                            </div>)}
+                                                    </ScrollToBottom>
+                                                </ul>
                                             </div>
-                                        </div>
+                                            <div className="chat-message clearfix">
+                                                <div className="input-group mb-0">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Enter text here..."
+                                                        value={message}
+                                                        onChange={(e) => setMessage(e.target.value)}
+                                                        onKeyPress={e => e.key === 'Enter' ? sendMessage(e) : null}
+                                                    />
+                                                    <div className="input-group-prepend">
+                                                        <button className="input-group-text" style={{ height: "3rem" }} onClick={e => sendMessage(e)}><i className="fa fa-send"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div> */}
+                                        {/* </div> */}
                                     </div>
                             }
                         </div>
