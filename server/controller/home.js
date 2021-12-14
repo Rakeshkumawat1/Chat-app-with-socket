@@ -19,3 +19,8 @@ exports.allUserList = async (req, res) => {
         res.status(400).json({ error: 'Internel server error!' });
     }
 }
+
+exports.privateUserSocket = (req, res) => {
+    let io = req.io;
+    res.send("connected")
+}

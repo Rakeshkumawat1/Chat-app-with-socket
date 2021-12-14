@@ -9,14 +9,11 @@ import { Modal, Button } from 'react-bootstrap';
 import Input from '../../components/UI/Inputs/signupinput';
 import { toast } from 'react-toastify';
 import ScrollToBottom from 'react-scroll-to-bottom';
-import Message from '../Message/message'
 
 let socket;
-// let detailsObj = { name: "Rakesh kumawat", status: "Active" };
 export default function Home() {
 
     toast.configure();
-    // socket = io(socketEndpoint, { transports: ['websocket'] });
 
     const history = useHistory();
     const home = useSelector(state => state.home)
@@ -25,7 +22,7 @@ export default function Home() {
     const dispatch = useDispatch()
 
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('user'))  || null; 
 
     const [mobile, setMobile] = useState('')
     const [show, setShow] = useState(false);
@@ -33,10 +30,15 @@ export default function Home() {
     const [showPrivateChat, setPrivateChat] = useState(true);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const [detailsObj, setDetailsObj] = useState({ name: "Rakesh kumawat", status: "Active" })
+    const [privateChatMessage, setPrivateChatMessage] = useState('');
+    const [privateMessages, setPrivateMessages] = useState([]);
+    const [detailsObj, setDetailsObj] = useState({ name: "Default", status: "Default" })
+    const [DynamicUid, setDynamicUid] = useState('');
+    // const [isSentByCurrentUser, setIsSentByCurrentUser] = useState(false);
+
 
     let userDetails = false;
-    let isSentByCurrentUser = false;
+    // let isSentByCurrentUser = false;
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -63,35 +65,33 @@ export default function Home() {
     }
 
     const logOut = () => {
-        console.log("logOut");
         dispatch(signOut())
     }
 
     const publicGroup = () => {
-        const { firstName } = user
+        const { firstName, mobile } = user
         const name = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-        socket.emit('join', { name: name, room: "test" }, (err) => {
+        socket.emit('join', { name: name + mobile, room: "test" }, (err) => {
             if (err) return console.log(err);
         });
         setPrivateChat(false)
         setshowGroupChat(true);
-        // console.log("in","message", message, "message1",messages)
         return () => {
             socket.emit('disconnect');
             socket.off();
         }
     }
 
+    // Fetching user list and connection with socket.
     useEffect(() => {
         dispatch(alluserlist(user))
         socket = io(socketEndpoint, { transports: ['websocket'] });
-        // socket.emit('join', { name:"test", room:"test" }, () => {
-
-        // })
     }, [])
+
 
     useEffect(() => {
         socket.on('message', (message) => {
+            // console.log("con", message);
             setMessages([...messages, message])
         })
     }, [messages]);
@@ -110,18 +110,25 @@ export default function Home() {
                 });
                 home.error = null;
             }
-            if (userList.allUserList.length) {
-                // toast.success(userList.allUserList, {
-                //     position: toast.POSITION.TOP_LEFT
-                // });
-                console.log(userList.allUserList);
-            }
+            // if (userList.allUserList.length) {
+            //     // toast.success(userList.allUserList, {
+            //     //     position: toast.POSITION.TOP_LEFT
+            //     // });
+            //     console.log(userList.allUserList);
+            // }
         } else {
             history.push({
                 pathname: '/signin',
             })
         }
-    }, [token, home, user, auth, userList])
+    }, [token, home, user, auth, /*userList*/])
+
+    useEffect(() => {
+        socket.on('PrivateMessage', (message) => {
+            // console.log("con", message);
+            setPrivateMessages([...privateMessages, message])
+        })
+    }, [privateMessages])
 
     const homeHeader = (userDetails, detailsObj) => {
         return (
@@ -158,60 +165,166 @@ export default function Home() {
         )
     }
 
-    const renderPrivateChatUi = (detailsObj) => {
-        return (
-            <div className="chat">
-                {homeHeader(userDetails = true, detailsObj)}
-                <div className="chat-history">
-                    <ul className="m-b-0">
-                        <li className="clearfix">
-                            <div className="message-data text-right">
-                                <span className="message-data-time">10:10 AM, Today</span>
-                                {/* <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar" /> */}
-                            </div>
-                            <div className="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
-                        </li>
-                        <li className="clearfix">
-                            <div className="message-data">
-                                <span className="message-data-time">10:12 AM, Today</span>
-                            </div>
-                            <div className="message my-message">Are we meeting today?</div>
-                        </li>
-                        <li className="clearfix">
-                            <div className="message-data">
-                                <span className="message-data-time">10:15 AM, Today</span>
-                            </div>
-                            <div className="message my-message">Project has been already finished and I have results to show you.</div>
-                        </li>
-                    </ul>
-                </div>
-                <div className="chat-message clearfix">
-                    <div className="input-group mb-0">
-                        <div className="input-group-prepend">
-                            <span className="input-group-text"><i className="fa fa-send"></i></span>
-                        </div>
-                        <input type="text" className="form-control" placeholder="Enter text here..." />
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
     const PrivateUser = (userData) => {
-        const { firstName } = userData;
+        const { firstName, uid } = userData;
         const name = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-        setDetailsObj({ name: name, status: "Active" });
+        setDetailsObj({ name: name, status: "Active", uid: uid });
         setPrivateChat(true)
         setshowGroupChat(false);
+        setDynamicUid(uid);
+        socket.emit('joinPrivateUser', { name: name + mobile, room: uid }, (err) => {
+            if (err) return console.log(err);
+        });
+        return () => {
+            socket.emit('disconnect');
+            socket.off();
+        }
     }
 
     const sendMessage = (e) => {
         e.preventDefault();
-        isSentByCurrentUser = true
+        // setIsSentByCurrentUser(true)
         if (message) {
             socket.emit('sendMessage', message, () => setMessage(''))
         }
     }
+    const sendPrivateMessage = (e) => {
+        e.preventDefault();
+        if (privateChatMessage) {
+            socket.emit('sendPrivateMessage', { msg: privateChatMessage, uid: DynamicUid }, () => setPrivateChatMessage(''))
+        }
+    }
+
+    const renderPrivateChatUi = (detailsObj) => {
+        return (
+            <div className="chat">
+                {homeHeader(userDetails = true, detailsObj)}
+                <div className="outerContainer">
+                    <ScrollToBottom className="messages">
+                        {privateMessages.map((singleMessage, i) =>
+                            <div key={i}>
+                                {singleMessage.user === DynamicUid
+                                    // isSentByCurrentUser
+                                    ? (
+                                        <li className="clearfix">
+                                            <div className="message-data text-right">
+                                                <span className="message-data-time">10:10 AM, Today</span>
+                                            </div>
+                                            <div className="message other-message float-right">{singleMessage.text}</div>
+
+                                        </li>
+                                    )
+                                    : (
+                                        <li className="clearfix">
+                                            <div className="message-data">
+                                                <span className="message-data-time">10:12 AM, Today</span>
+                                            </div>
+                                            <div className="message my-message">{singleMessage.text}</div>
+
+                                        </li>
+
+                                    )}
+                            </div>)}
+                    </ScrollToBottom>
+                    <div className="chat-message clearfix">
+                        <div className="input-group mb-0">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Enter text here..."
+                                value={privateChatMessage}
+                                onChange={(e) => setPrivateChatMessage(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' ? sendPrivateMessage(e) : null}
+                            />
+                            <div className="input-group-prepend">
+                                <button className="input-group-text" style={{ height: "3rem" }} onClick={e => sendPrivateMessage(e)}><i className="fa fa-send"></i></button>
+                            </div>
+                        </div>
+                        {/* </div> */}
+                    </div>
+                </div>
+            </div>
+            // <div className="chat">
+            //     {homeHeader(userDetails = true, detailsObj)}
+            //     <div className="outerContainer">
+            //         <ScrollToBottom className="messages">
+            //             {messages.map((singleMessage, i) =>
+            //                 <div key={i}>
+            //                     {singleMessage.user === user.firstName + user.mobile
+            //                         // isSentByCurrentUser
+            //                         ? (
+            //                             <li className="clearfix">
+            //                                 <div className="message-data text-right">
+            //                                     <span className="message-data-time">10:10 AM, Today</span>
+            //                                 </div>
+            //                                 <div className="message other-message float-right">{singleMessage.text}</div>
+
+            //                             </li>
+            //                         )
+            //                         : (
+            //                             <li className="clearfix">
+            //                                 <div className="message-data">
+            //                                     <span className="message-data-time">10:12 AM, Today</span>
+            //                                 </div>
+            //                                 <div className="message my-message">{singleMessage.text}</div>
+
+            //                             </li>
+
+            //                         )}
+            //                 </div>)}
+            //         </ScrollToBottom>
+            //         <div className="chat-message clearfix">
+            //             <div className="input-group mb-0">
+            //                 <input
+            //                     type="text"
+            //                     className="form-control"
+            //                     placeholder="Enter text here..."
+            //                     value={message}
+            //                     onChange={(e) => sendPrivateMessage(e.target.value)}
+            //                     onKeyPress={e => e.key === 'Enter' ? sendPrivateMessage(e) : null}
+            //                 />
+            //                 <div className="input-group-prepend">
+            //                     <button className="input-group-text" style={{ height: "3rem" }} onClick={e => sendPrivateMessage(e)}><i className="fa fa-send"></i></button>
+            //                 </div>
+            //             </div>
+            //             {/* </div> */}
+            //         </div>
+            //     </div>
+            //     {/* <div className="chat-history">
+            //         <ul className="m-b-0">
+            //             <li className="clearfix">
+            //                 <div className="message-data text-right">
+            //                     <span className="message-data-time">10:10 AM, Today</span>
+            //                 </div>
+            //                 <div className="message other-message float-right"> Hi Aiden, how are you? How is the project coming along? </div>
+            //             </li>
+            //             <li className="clearfix">
+            //                 <div className="message-data">
+            //                     <span className="message-data-time">10:12 AM, Today</span>
+            //                 </div>
+            //                 <div className="message my-message">Are we meeting today?</div>
+            //             </li>
+            //             <li className="clearfix">
+            //                 <div className="message-data">
+            //                     <span className="message-data-time">10:15 AM, Today</span>
+            //                 </div>
+            //                 <div className="message my-message">Project has been already finished and I have results to show you.</div>
+            //             </li>
+            //         </ul>
+            //     </div>
+            //     <div className="chat-message clearfix">
+            //         <div className="input-group mb-0">
+            //             <div className="input-group-prepend">
+            //                 <span className="input-group-text"><i className="fa fa-send"></i></span>
+            //             </div>
+            //             <input type="text" className="form-control" placeholder="Enter text here..." />
+            //         </div>
+            //     </div> */}
+            // </div>
+        )
+    }
+
+
 
     return (
         <div>
@@ -315,12 +428,13 @@ export default function Home() {
 
                                         {homeHeader(userDetails = true, { name: "Public group chat", status: "Active" })}
                                         <div className="outerContainer">
-                                        {/* <div className="chat-history" > */}
+                                            {/* <div className="chat-history" > */}
                                             {/* <div className="container"> */}
                                             {/* <ul> */}
                                             <ScrollToBottom className="messages">
                                                 {messages.map((singleMessage, i) => <div key={i}>
-                                                    {!isSentByCurrentUser
+                                                    {singleMessage.user === user.firstName + user.mobile
+                                                        // isSentByCurrentUser
                                                         ? (
                                                             <li className="clearfix">
                                                                 <div className="message-data text-right">

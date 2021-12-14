@@ -52,6 +52,7 @@ const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 })
 
+let testArr = []
 const io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
@@ -73,13 +74,40 @@ io.on('connection', (socket) => {
         callback();
     })
 
+    socket.on('joinPrivateUser', ({ name, room }, callback) => {
+        // const { error, user } = addUser({ id: socket.id, name, room, uid });
+
+        // if (error) return callback(error);
+
+        // const id = socket.id;
+        testArr.push({ id: socket.id, room, name })
+        socket.emit('PrivateMessage', { user: 'Admin', text: `Welcome to the Chat App!` });
+        socket.join(room);
+        callback()
+    })
+
     socket.on('sendMessage', (message, callback) => {
         const user = getUser(socket.id);
         io.to(user.room).emit('message', { user: user.name, text: message });
         io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
-
         callback();
     });
+
+    socket.on('sendPrivateMessage', (message, callback) => {
+        testArr.map((hit) => {
+            console.log(hit);
+            if (hit.uid === message.room) {
+                io.to(hit.id).emit('PrivateMessage', { user: message.uid, text: message.msg })
+            }else{
+                console.log("UserIsNotActive")
+            }
+        })
+        // const user = getUser(socket.id);
+        // console.log(user);
+        // const user = getUser(message.name)
+        // console.log(message)
+        callback()
+    })
     socket.on('disconnect', () => {
         console.log('User had left!');
         const user = removeUser(socket.id);
@@ -91,12 +119,12 @@ io.on('connection', (socket) => {
     })
 })
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     req.io = io;
     next();
 });
 
-app.use('/api/test',testRoute);
+app.use('/api/test', testRoute);
 app.use('/api/', addNewUserRoute);
 app.use('/api/', allUserListRoute);
 
