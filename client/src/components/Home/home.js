@@ -22,7 +22,7 @@ export default function Home() {
     const dispatch = useDispatch()
 
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'))  || null; 
+    const user = JSON.parse(localStorage.getItem('user')) || null;
 
     const [mobile, setMobile] = useState('')
     const [show, setShow] = useState(false);
@@ -128,6 +128,7 @@ export default function Home() {
             // console.log("con", message);
             setPrivateMessages([...privateMessages, message])
         })
+        console.log(privateMessages)
     }, [privateMessages])
 
     const homeHeader = (userDetails, detailsObj) => {
@@ -166,13 +167,14 @@ export default function Home() {
     }
 
     const PrivateUser = (userData) => {
-        const { firstName, uid } = userData;
+        console.log('user:', userData)
+        const { firstName, uid, mobile } = userData;
         const name = firstName.charAt(0).toUpperCase() + firstName.slice(1);
         setDetailsObj({ name: name, status: "Active", uid: uid });
         setPrivateChat(true)
         setshowGroupChat(false);
-        setDynamicUid(uid);
-        socket.emit('joinPrivateUser', { name: name + mobile, room: uid }, (err) => {
+        setDynamicUid(mobile);
+        socket.emit('joinPrivateUser', { name: name + mobile, room: user.mobile }, (err) => {
             if (err) return console.log(err);
         });
         return () => {
@@ -183,15 +185,20 @@ export default function Home() {
 
     const sendMessage = (e) => {
         e.preventDefault();
-        // setIsSentByCurrentUser(true)
         if (message) {
             socket.emit('sendMessage', message, () => setMessage(''))
         }
     }
     const sendPrivateMessage = (e) => {
         e.preventDefault();
+        let ts = +new Date();
+        let date = new Date();
+        let time = date.getHours()+ ":"+ date.getMinutes();
         if (privateChatMessage) {
-            socket.emit('sendPrivateMessage', { msg: privateChatMessage, uid: DynamicUid }, () => setPrivateChatMessage(''))
+            socket.emit('sendPrivateMessage', { msg: privateChatMessage, from: user.mobile, to: DynamicUid, ts }, () => {
+                setPrivateChatMessage('')
+                setPrivateMessages([...privateMessages, { text: privateChatMessage, from: user.mobile, to: DynamicUid, ts: time }])
+            })
         }
     }
 
@@ -203,27 +210,28 @@ export default function Home() {
                     <ScrollToBottom className="messages">
                         {privateMessages.map((singleMessage, i) =>
                             <div key={i}>
-                                {singleMessage.user === DynamicUid
-                                    // isSentByCurrentUser
-                                    ? (
-                                        <li className="clearfix">
-                                            <div className="message-data text-right">
-                                                <span className="message-data-time">10:10 AM, Today</span>
-                                            </div>
-                                            <div className="message other-message float-right">{singleMessage.text}</div>
+                                {(singleMessage.from === user.mobile || singleMessage.to === user.mobile) && (singleMessage.from === DynamicUid || singleMessage.to === DynamicUid)?
+                                    singleMessage.from === user.mobile
+                                        ? (
+                                            <li className="clearfix">
+                                                <div className="message-data float-right">
+                                                    <span className="message-data-time">{singleMessage.ts}, Today</span>
+                                                </div><br></br>
+                                                <div className="message other-message float-right">{singleMessage.text}</div>
 
-                                        </li>
-                                    )
-                                    : (
-                                        <li className="clearfix">
-                                            <div className="message-data">
-                                                <span className="message-data-time">10:12 AM, Today</span>
-                                            </div>
-                                            <div className="message my-message">{singleMessage.text}</div>
+                                            </li>
+                                        )
+                                        : (
+                                            <li className="clearfix">
+                                                <div className="message-data">
+                                                    <span className="message-data-time">{singleMessage.ts}, Today</span>
+                                                </div>
+                                                <div className="message my-message">{singleMessage.text}</div>
 
-                                        </li>
+                                            </li>
 
-                                    )}
+                                        )
+                                    : null}
                             </div>)}
                     </ScrollToBottom>
                     <div className="chat-message clearfix">

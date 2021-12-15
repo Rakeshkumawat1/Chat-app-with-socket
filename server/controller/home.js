@@ -8,7 +8,7 @@ exports.allUserList = async (req, res) => {
         let skeepField = { _id: 0, userGroupsArr: 0, uid: 0, __v: 0, singleUsersArr: { $slice: [0, 5] } }
         const result = await UserHome.findOne({ uid }, skeepField);
         if (result) {
-            const name = await User.find({ uid: {$in: result.singleUsersArr}}, {_id:0, firstName:1, uid:1});
+            const name = await User.find({ uid: {$in: result.singleUsersArr}}, {_id:0, firstName:1, uid:1, mobile:1});
             res.status(200).json({message: name});
         } else {
             res.status(400).json({ error: "No more users..." })

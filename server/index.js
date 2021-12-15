@@ -80,8 +80,8 @@ io.on('connection', (socket) => {
         // if (error) return callback(error);
 
         // const id = socket.id;
-        testArr.push({ id: socket.id, room, name })
         socket.emit('PrivateMessage', { user: 'Admin', text: `Welcome to the Chat App!` });
+        testArr.push({ id: socket.id, room, name })
         socket.join(room);
         callback()
     })
@@ -94,11 +94,14 @@ io.on('connection', (socket) => {
     });
 
     socket.on('sendPrivateMessage', (message, callback) => {
+        let time = new Date(message.ts);
+        let ts = time.getHours() + ":" + time.getMinutes();
+        // console.log(message)
         testArr.map((hit) => {
-            console.log(hit);
-            if (hit.uid === message.room) {
-                io.to(hit.id).emit('PrivateMessage', { user: message.uid, text: message.msg })
-            }else{
+            // console.log(hit)
+            if (hit.room === message.to) {
+                io.to(hit.id).emit('PrivateMessage', { to: message.to, from: message.from, text: message.msg, ts})
+            } else {
                 console.log("UserIsNotActive")
             }
         })
